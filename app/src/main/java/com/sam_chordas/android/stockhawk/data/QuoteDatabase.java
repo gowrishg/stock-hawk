@@ -8,9 +8,14 @@ import net.simonvt.schematic.annotation.Table;
  */
 @Database(version = QuoteDatabase.VERSION)
 public class QuoteDatabase {
-    public static final int VERSION = 7;
+    public static final int VERSION = 11;
+
+    @Table(QuoteData.class)
+    public static final String QUOTES_HISTORY = "quotes_history";
+
     @Table(QuoteColumns.class)
     public static final String QUOTES = "quotes";
+
 
     private QuoteDatabase() {
     }

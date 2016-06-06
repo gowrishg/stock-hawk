@@ -36,7 +36,8 @@ import com.sam_chordas.android.stockhawk.service.StockIntentService;
 import com.sam_chordas.android.stockhawk.service.StockTaskService;
 import com.sam_chordas.android.stockhawk.touch_helper.SimpleItemTouchHelperCallback;
 
-public class MyStocksActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor> {
+public class
+MyStocksActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor> {
 
     /**
      * Fragment managing the behaviors, interactions and presentation of the navigation drawer.
@@ -87,8 +88,13 @@ public class MyStocksActivity extends AppCompatActivity implements LoaderManager
                     @Override
                     public void onItemClick(View v, int position) {
                         //TODO:
+                        if(!mCursor.moveToPosition(position)) {
+                            return;
+                        }
+                        String symbol = mCursor.getString(mCursor.getColumnIndex(QuoteColumns.SYMBOL));
                         // do something on item click
                         Intent intent = new Intent(MyStocksActivity.this, LineGraphActivity.class);
+                        intent.putExtra(LineGraphActivity.SYMBOL_KEY, symbol);
                         startActivity(intent);
                     }
                 }));
