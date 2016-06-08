@@ -6,13 +6,17 @@ import android.content.OperationApplicationException;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteConstraintException;
 import android.graphics.Color;
+import android.graphics.Rect;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.RemoteException;
+import android.support.design.widget.Snackbar;
 import android.util.Log;
 
+import com.db.chart.listener.OnEntryClickListener;
 import com.db.chart.model.LineSet;
+import com.db.chart.model.Point;
 import com.db.chart.view.AxisController;
 import com.db.chart.view.LineChartView;
 import com.sam_chordas.android.stockhawk.R;
@@ -33,6 +37,7 @@ public class LineGraphActivity extends Activity {
     LineChartView mLineChartView;
     String stockSymbol;
     public static final String SYMBOL_KEY = "symbol";
+    StockHistoryChart stockHistoryChart;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,6 +45,7 @@ public class LineGraphActivity extends Activity {
         setContentView(R.layout.activity_line_graph);
         mLineChartView = (LineChartView) findViewById(R.id.linechart);
         stockSymbol = getIntent().getStringExtra(SYMBOL_KEY);
+        stockHistoryChart = new StockHistoryChart(mLineChartView, getBaseContext());
 
         Cursor cursor = drawChart();
         //format the date to the following yyyy-MM-dd
@@ -58,6 +64,9 @@ public class LineGraphActivity extends Activity {
         }
     }
 
+    String[] labels;
+    float[] values;
+
     /**
      * Returns the number of results
      *
@@ -72,7 +81,7 @@ public class LineGraphActivity extends Activity {
         String formattedEndDate = simpleDateFormat.format(cal.getTime());
         cal.set(Calendar.DATE, cal.get(Calendar.DATE) - 100);
         String formattedStartDate = simpleDateFormat.format(cal.getTime());
-
+        
         Cursor c = getContentResolver().query(QuoteProvider.QuotesHistory.withSymbol(stockSymbol),
                 new String[]{QuoteData.SYMBOL, QuoteData.DATE, QuoteData.OPEN},
                 QuoteData.DATE + " > ? AND " + QuoteData.DATE + " < ?",
@@ -84,8 +93,9 @@ public class LineGraphActivity extends Activity {
         //! do nothing
         if (size == 0) return c;
 
-        String[] labels = new String[size];
-        float[] values = new float[size];
+        labels = new String[size];
+        values = new float[size];
+        LineSet point = null;
         int i = 0;
         float min = Float.MAX_VALUE, max = Float.MIN_VALUE;
         while (c.moveToNext()) {
@@ -95,27 +105,47 @@ public class LineGraphActivity extends Activity {
             max = max > values[i - 1] ? max : values[i - 1];
             Log.d(TAG, labels[i - 1] + ":" + values[i - 1]);
         }
+
+        stockHistoryChart.setData(labels, values, min, max);
+
+        if(!stockHistoryChart.isShown()) {
+            stockHistoryChart.show();
+        } else {
+            stockHistoryChart.update();
+        }
+
+
+
+        return c;
+
+        /*
         LineSet dataset = new LineSet(labels, values);
+
+
         dataset.setColor(Color.parseColor("#758cbb"))
                 .setFill(Color.parseColor("#2d374c"))
                 .setDotsColor(Color.parseColor("#758cbb"))
-                .setThickness(4);
+                .setThickness(4)
+        ;
+
         mLineChartView.getData().clear();
         mLineChartView.setYLabels(AxisController.LabelPosition.NONE)
                 .setXLabels(AxisController.LabelPosition.NONE)
                 .setAxisBorderValues((int) min - 1, (int) max + 1)
                 .setXAxis(false)
-        ;
+                .setYAxis(false)
+                .setOnEntryClickListener(new OnEntryClickListener() {
+                    @Override
+                    public void onClick(int setIndex, int entryIndex, Rect rect) {
+                        Log.d(TAG, setIndex + ", " + entryIndex);
+                        Snackbar.make(mLineChartView, labels[entryIndex] + ":" + values[entryIndex], Snackbar.LENGTH_LONG).show();
+                    }
+                });
         mLineChartView.addData(dataset);
         mLineChartView.show();
 
-
-
-
-
-
-
         return c;
+        */
     }
 
     /**
