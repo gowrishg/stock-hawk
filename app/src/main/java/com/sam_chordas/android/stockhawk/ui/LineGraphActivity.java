@@ -81,7 +81,7 @@ public class LineGraphActivity extends Activity {
         String formattedEndDate = simpleDateFormat.format(cal.getTime());
         cal.set(Calendar.DATE, cal.get(Calendar.DATE) - 100);
         String formattedStartDate = simpleDateFormat.format(cal.getTime());
-        
+
         Cursor c = getContentResolver().query(QuoteProvider.QuotesHistory.withSymbol(stockSymbol),
                 new String[]{QuoteData.SYMBOL, QuoteData.DATE, QuoteData.OPEN},
                 QuoteData.DATE + " > ? AND " + QuoteData.DATE + " < ?",
