@@ -10,12 +10,12 @@ import java.lang.annotation.RetentionPolicy;
  */
 public class WebResults {
 
+    public static final int STATUS_UNKNOWN = -1;
     public static final int STATUS_OK = 0;
     public static final int STATUS_SERVER_DOWN = 1;
     public static final int STATUS_SERVER_INVALID = 2;
-    public static final int STATUS_UNKNOWN = 3;
     public static final int STATUS_NO_INTERNET = 4;
-    @IntDef({STATUS_OK, STATUS_SERVER_DOWN, STATUS_SERVER_INVALID, STATUS_UNKNOWN, STATUS_NO_INTERNET})
+    @IntDef({STATUS_UNKNOWN, STATUS_OK, STATUS_SERVER_DOWN, STATUS_SERVER_INVALID, STATUS_NO_INTERNET})
     @Retention(RetentionPolicy.SOURCE)
     public @interface Response {
     }

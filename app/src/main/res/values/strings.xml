@@ -1,4 +1,4 @@
-<resources>
+<resources xmlns:xliff="http://schemas.android.com/tools">
     <string name="app_name">Stock Hawk</string>
 
     <string name="action_example">Example action</string>
@@ -7,12 +7,14 @@
     <string name="action_change_units">Change Units</string>
     <string name="symbol_search">Symbol Search</string>
     <string name="content_test">Search for a Stock Symbol</string>
-    <string name="input_hint">FB</string>
-    <string name="input_prefill"></string>
+    <string name="input_hint">Stock Symbol</string>
     <string name="network_toast">No Internet Connection</string>
 
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="title_activity_line_graph">LineGraphActivity</string>
     <string name="retry">Retry</string>
+    <string name="symbol_already_exists"><xliff:g id="symbol">\'%s\'</xliff:g> is already saved!</string>
+    <string name="add_new_symbol"><xliff:g id="symbol">\'%s\'</xliff:g> is added!</string>
+    <string name="symbol_doesnt_exist"><xliff:g id="symbol">\'%s\'</xliff:g> doesn\'t exist!</string>
 </resources>

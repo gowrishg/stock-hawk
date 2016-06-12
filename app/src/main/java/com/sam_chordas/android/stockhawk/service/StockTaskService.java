@@ -1,8 +1,13 @@
 package com.sam_chordas.android.stockhawk.service;
 
+import android.app.Application;
+import android.content.BroadcastReceiver;
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.Intent;
 import android.content.OperationApplicationException;
+import android.content.pm.ApplicationInfo;
+import android.content.pm.PackageInfo;
 import android.database.Cursor;
 import android.database.DatabaseUtils;
 import android.os.RemoteException;
@@ -19,6 +24,7 @@ import com.squareup.okhttp.Response;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
+import java.util.ArrayList;
 
 /**
  * Created by sam_chordas on 9/30/15.
@@ -94,8 +100,9 @@ public class StockTaskService extends GcmTaskService{
       isUpdate = false;
       // get symbol from params.getExtra and build query
       String stockInput = params.getExtras().getString("symbol");
+      mStoredSymbols.append(stockInput);
       try {
-        urlStringBuilder.append(URLEncoder.encode("\""+stockInput+"\")", "UTF-8"));
+        urlStringBuilder.append(URLEncoder.encode("\""+mStoredSymbols.toString()+"\")", "UTF-8"));
       } catch (UnsupportedEncodingException e){
         e.printStackTrace();
       }
@@ -121,8 +128,21 @@ public class StockTaskService extends GcmTaskService{
             mContext.getContentResolver().update(QuoteProvider.Quotes.CONTENT_URI, contentValues,
                 null, null);
           }
-          mContext.getContentResolver().applyBatch(QuoteProvider.AUTHORITY,
-              Utils.quoteJsonToContentVals(getResponse));
+          ArrayList batchContentValues = Utils.quoteJsonToContentVals(getResponse);
+          if(!isUpdate) {
+            Intent intent = new Intent();
+            intent.setAction("stock_add_status");
+            if(batchContentValues.isEmpty()) {
+              intent.putExtra("status", "symbol_doesnt_exist");
+              intent.putExtra("symbol", mStoredSymbols.toString());
+              mContext.sendBroadcast(intent);
+            } else {
+              intent.putExtra("status", "symbol_added");
+              intent.putExtra("symbol", mStoredSymbols.toString());
+            }
+            mContext.sendBroadcast(intent);
+          }
+          mContext.getContentResolver().applyBatch(QuoteProvider.AUTHORITY, batchContentValues);
         }catch (RemoteException | OperationApplicationException e){
           Log.e(LOG_TAG, "Error applying batch insert", e);
         }

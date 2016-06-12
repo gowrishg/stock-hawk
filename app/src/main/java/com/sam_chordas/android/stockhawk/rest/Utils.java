@@ -36,7 +36,9 @@ public class Utils {
                 if (count == 1) {
                     jsonObject = jsonObject.getJSONObject("results")
                             .getJSONObject("quote");
-                    batchOperations.add(buildBatchOperation(jsonObject));
+                    ContentProviderOperation contentProviderOperation = buildBatchOperation(jsonObject);
+                    if(contentProviderOperation == null) { return batchOperations; }
+                    batchOperations.add(contentProviderOperation);
                 } else {
                     resultsArray = jsonObject.getJSONObject("results").getJSONArray("quote");
 
@@ -81,11 +83,17 @@ public class Utils {
         return change;
     }
 
-    public static ContentProviderOperation buildBatchOperation(JSONObject jsonObject) {
+    /**
+     * Check if a valid entry exists or not
+     * @param jsonObject
+     * @return Null if entry doesn't exists
+     */
+    public static @Nullable ContentProviderOperation buildBatchOperation(JSONObject jsonObject) {
         ContentProviderOperation.Builder builder = ContentProviderOperation.newInsert(
                 QuoteProvider.Quotes.CONTENT_URI);
         try {
             String change = jsonObject.getString("Change");
+            if(TextUtils.isEmpty(change) || change.equalsIgnoreCase("null")) return null;
             builder.withValue(QuoteColumns.SYMBOL, jsonObject.getString("symbol"));
             builder.withValue(QuoteColumns.BIDPRICE, truncateBidPrice(jsonObject.getString("Bid")));
             builder.withValue(QuoteColumns.PERCENT_CHANGE, truncateChange(
