@@ -17,4 +17,5 @@
     <string name="symbol_already_exists"><xliff:g id="symbol">\'%s\'</xliff:g> is already saved!</string>
     <string name="add_new_symbol"><xliff:g id="symbol">\'%s\'</xliff:g> is added!</string>
     <string name="symbol_doesnt_exist"><xliff:g id="symbol">\'%s\'</xliff:g> doesn\'t exist!</string>
+    <string name="currency_symbol">$</string>
 </resources>

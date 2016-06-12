@@ -6,15 +6,20 @@ package com.sam_chordas.android.stockhawk.ui;
 
 import android.animation.PropertyValuesHolder;
 import android.content.Context;
+import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.graphics.Rect;
 import android.graphics.Typeface;
 import android.os.Build;
 import android.view.View;
+import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.db.chart.Tools;
 import com.db.chart.listener.OnEntryClickListener;
+import com.db.chart.model.ChartEntry;
+import com.db.chart.model.ChartSet;
 import com.db.chart.model.LineSet;
 import com.db.chart.model.Point;
 import com.db.chart.view.AxisController;
@@ -23,6 +28,9 @@ import com.db.chart.view.Tooltip;
 import com.sam_chordas.android.stockhawk.R;
 
 import java.text.DecimalFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 
 public class StockHistoryChart {
@@ -30,6 +38,8 @@ public class StockHistoryChart {
 
     private final LineChartView mChart;
 
+    SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd");
+    SimpleDateFormat tooltipDateFormat = new SimpleDateFormat("dd MMM");
 
     private final Context mContext;
 
@@ -57,12 +67,9 @@ public class StockHistoryChart {
 
         // Tooltip
         mTip = new Tooltip(mContext, R.layout.linechart_three_tooltip, R.id.value);
-
-        ((TextView) mTip.findViewById(R.id.value))
-                .setTypeface(Typeface.createFromAsset(mContext.getAssets(), "fonts/Roboto-Thin.ttf"));
-
-        mTip.setVerticalAlignment(Tooltip.Alignment.BOTTOM_TOP);
-        mTip.setDimensions((int) Tools.fromDpToPx(65), (int) Tools.fromDpToPx(25));
+        mTip.setVerticalAlignment(Tooltip.Alignment.CENTER);
+        mTip.setHorizontalAlignment(Tooltip.Alignment.CENTER);
+        mTip.setDimensions((int) Tools.fromDpToPx(65), (int) Tools.fromDpToPx(25 * 2));
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
 
@@ -109,7 +116,15 @@ public class StockHistoryChart {
                         .setDotsRadius(Tools.fromDpToPx(2))
                         .setThickness(4);
 
-                Point point = (Point) mDataSet.getEntry(entryIndex);
+                ChartEntry chartEntry = mDataSet.getEntry(entryIndex);
+                String selectedLabel = chartEntry.getLabel();
+                try {
+                    selectedLabel = tooltipDateFormat.format(simpleDateFormat.parse(selectedLabel));
+                } catch (ParseException e) {
+                    e.printStackTrace();
+                }
+                ((TextView) mTip.findViewById(R.id.label)).setText(selectedLabel);
+                Point point = (Point) chartEntry;
                 point.setColor(Color.parseColor("#ffffff"));
                 point.setStrokeColor(Color.parseColor("#0290c3"));
                 point.setRadius(Tools.fromDpToPx(4));
