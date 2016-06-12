@@ -82,7 +82,7 @@ public class StockHistoryChart {
                     PropertyValuesHolder.ofFloat(View.SCALE_X, 0f)).setDuration(200);
 
             mTip.setPivotX(Tools.fromDpToPx(65) / 2);
-            mTip.setPivotY(Tools.fromDpToPx(25));
+            mTip.setPivotY(Tools.fromDpToPx(25 * 2));
         }
 
         mChart.setTooltips(mTip);
