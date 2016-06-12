@@ -19,13 +19,9 @@
             android:layout_height="wrap_content"
             android:layout_gravity="end|bottom|right"
             android:layout_margin="16dp"
+            android:contentDescription="@string/content_description_add_stock"
             android:src="@drawable/ic_add_white_24dp" />
 
-        <!--fab:fab_colorNormal="@color/material_blue_500"-->
-        <!--fab:fab_colorPressed="@color/material_blue_600"-->
-        <!--fab:fab_colorRipple="@color/ripple"-->
-        <!--fab:fab_shadow="true"-->
-        <!--fab:fab_type="normal"-->
     </android.support.design.widget.CoordinatorLayout>
 
 </RelativeLayout>
