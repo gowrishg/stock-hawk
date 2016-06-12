@@ -9,6 +9,9 @@ import android.database.Cursor;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
+import android.support.design.widget.CoordinatorLayout;
+import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.Snackbar;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
@@ -25,13 +28,14 @@ import com.afollestad.materialdialogs.MaterialDialog;
 import com.google.android.gms.gcm.GcmNetworkManager;
 import com.google.android.gms.gcm.PeriodicTask;
 import com.google.android.gms.gcm.Task;
-import com.melnykov.fab.FloatingActionButton;
+//import com.melnykov.fab.FloatingActionButton;
 import com.sam_chordas.android.stockhawk.R;
 import com.sam_chordas.android.stockhawk.data.QuoteColumns;
 import com.sam_chordas.android.stockhawk.data.QuoteProvider;
 import com.sam_chordas.android.stockhawk.rest.QuoteCursorAdapter;
 import com.sam_chordas.android.stockhawk.rest.RecyclerViewItemClickListener;
 import com.sam_chordas.android.stockhawk.rest.Utils;
+import com.sam_chordas.android.stockhawk.rest.WebResults;
 import com.sam_chordas.android.stockhawk.service.StockIntentService;
 import com.sam_chordas.android.stockhawk.service.StockTaskService;
 import com.sam_chordas.android.stockhawk.touch_helper.SimpleItemTouchHelperCallback;
@@ -44,7 +48,11 @@ MyStocksActivity extends AppCompatActivity implements LoaderManager.LoaderCallba
      */
 
     private static final int CURSOR_LOADER_ID = 0;
-    boolean isConnected;
+
+    private
+    @WebResults.Response
+    int dataStatus = WebResults.STATUS_UNKNOWN;
+
     /**
      * Used to store the last screen title. For use in {@link #restoreActionBar()}.
      */
@@ -52,43 +60,33 @@ MyStocksActivity extends AppCompatActivity implements LoaderManager.LoaderCallba
     private Intent mServiceIntent;
     private ItemTouchHelper mItemTouchHelper;
     private QuoteCursorAdapter mCursorAdapter;
-    private Context mContext;
     private Cursor mCursor;
+    private RecyclerView mRecyclerView;
+    private FloatingActionButton mFab;
+    private CoordinatorLayout coordinatorlayout;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mContext = this;
-        ConnectivityManager cm =
-                (ConnectivityManager) mContext.getSystemService(Context.CONNECTIVITY_SERVICE);
-
-        NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
-        isConnected = activeNetwork != null &&
-                activeNetwork.isConnectedOrConnecting();
         setContentView(R.layout.activity_my_stocks);
         // The intent service is for executing immediate pulls from the Yahoo API
         // GCMTaskService can only schedule tasks, they cannot execute immediately
         mServiceIntent = new Intent(this, StockIntentService.class);
-        if (savedInstanceState == null) {
-            // Run the initialize task service so that some stocks appear upon an empty database
-            mServiceIntent.putExtra("tag", "init");
-            if (isConnected) {
-                startService(mServiceIntent);
-            } else {
-                networkToast();
-            }
-        }
-        RecyclerView recyclerView = (RecyclerView) findViewById(R.id.recycler_view);
-        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        mRecyclerView = (RecyclerView) findViewById(R.id.recycler_view);
+        mFab = (FloatingActionButton) findViewById(R.id.fab);
+        coordinatorlayout = (CoordinatorLayout) findViewById(R.id.coordinatorlayout);
+        checkForUpdates();
+
+        mRecyclerView.setLayoutManager(new LinearLayoutManager(this));
         getLoaderManager().initLoader(CURSOR_LOADER_ID, null, this);
 
         mCursorAdapter = new QuoteCursorAdapter(this, null);
-        recyclerView.addOnItemTouchListener(new RecyclerViewItemClickListener(this,
+        mRecyclerView.addOnItemTouchListener(new RecyclerViewItemClickListener(this,
                 new RecyclerViewItemClickListener.OnItemClickListener() {
                     @Override
                     public void onItemClick(View v, int position) {
                         //TODO:
-                        if(!mCursor.moveToPosition(position)) {
+                        if (!mCursor.moveToPosition(position)) {
                             return;
                         }
                         String symbol = mCursor.getString(mCursor.getColumnIndex(QuoteColumns.SYMBOL));
@@ -98,16 +96,32 @@ MyStocksActivity extends AppCompatActivity implements LoaderManager.LoaderCallba
                         startActivity(intent);
                     }
                 }));
-        recyclerView.setAdapter(mCursorAdapter);
+        mRecyclerView.setAdapter(mCursorAdapter);
 
+        mRecyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
+                if (dy > 0 && mFab.isShown())
+                    mFab.hide();
+            }
 
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.attachToRecyclerView(recyclerView);
-        fab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onScrollStateChanged(RecyclerView recyclerView, int newState) {
+
+                if (newState ==  RecyclerView.SCROLL_STATE_IDLE) {
+                    mFab.show();
+                }
+                super.onScrollStateChanged(recyclerView, newState);
+            }
+        });
+
+//        mFab.attachToRecyclerView(mRecyclerView);
+        mFab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                boolean isConnected = isInternetConnected();
                 if (isConnected) {
-                    new MaterialDialog.Builder(mContext).title(R.string.symbol_search)
+                    new MaterialDialog.Builder(MyStocksActivity.this).title(R.string.symbol_search)
                             .content(R.string.content_test)
                             .inputType(InputType.TYPE_CLASS_TEXT)
                             .input(R.string.input_hint, R.string.input_prefill, new MaterialDialog.InputCallback() {
@@ -143,9 +157,10 @@ MyStocksActivity extends AppCompatActivity implements LoaderManager.LoaderCallba
 
         ItemTouchHelper.Callback callback = new SimpleItemTouchHelperCallback(mCursorAdapter);
         mItemTouchHelper = new ItemTouchHelper(callback);
-        mItemTouchHelper.attachToRecyclerView(recyclerView);
+        mItemTouchHelper.attachToRecyclerView(mRecyclerView);
 
         mTitle = getTitle();
+        boolean isConnected = isInternetConnected();
         if (isConnected) {
             long period = 3600L;
             long flex = 10L;
@@ -167,6 +182,29 @@ MyStocksActivity extends AppCompatActivity implements LoaderManager.LoaderCallba
         }
     }
 
+    private void checkForUpdates() {
+        // Run the initialize task service so that some stocks appear upon an empty database
+        mServiceIntent.putExtra("tag", "init");
+        boolean isConnected = isInternetConnected();
+        if (isConnected) {
+            startService(mServiceIntent);
+        }
+
+        if (!isConnected) {
+            networkToast();
+        }
+    }
+
+    private boolean isInternetConnected() {
+        boolean isConnected;
+        ConnectivityManager cm =
+                (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
+        isConnected = activeNetwork != null &&
+                activeNetwork.isConnectedOrConnecting();
+        return isConnected;
+    }
+
 
     @Override
     public void onResume() {
@@ -175,7 +213,12 @@ MyStocksActivity extends AppCompatActivity implements LoaderManager.LoaderCallba
     }
 
     public void networkToast() {
-        Toast.makeText(mContext, getString(R.string.network_toast), Toast.LENGTH_SHORT).show();
+        Snackbar.make(mFab, R.string.network_toast, Snackbar.LENGTH_INDEFINITE).setAction(R.string.retry, new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                checkForUpdates();
+            }
+        }).show();
     }
 
     public void restoreActionBar() {
