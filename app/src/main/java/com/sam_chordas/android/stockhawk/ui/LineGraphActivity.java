@@ -1,23 +1,20 @@
 package com.sam_chordas.android.stockhawk.ui;
 
-import android.app.Activity;
 import android.content.Context;
 import android.content.OperationApplicationException;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteConstraintException;
-import android.graphics.Color;
-import android.graphics.Rect;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.RemoteException;
-import android.support.design.widget.Snackbar;
+import android.support.v7.app.ActionBar;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 
-import com.db.chart.listener.OnEntryClickListener;
 import com.db.chart.model.LineSet;
-import com.db.chart.model.Point;
-import com.db.chart.view.AxisController;
 import com.db.chart.view.LineChartView;
 import com.sam_chordas.android.stockhawk.R;
 import com.sam_chordas.android.stockhawk.data.QuoteData;
@@ -31,7 +28,7 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 
-public class LineGraphActivity extends Activity {
+public class LineGraphActivity extends AppCompatActivity {
 
     private static final String TAG = LineGraphActivity.class.getSimpleName();
     LineChartView mLineChartView;
@@ -43,8 +40,8 @@ public class LineGraphActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_line_graph);
-        mLineChartView = (LineChartView) findViewById(R.id.linechart);
         stockSymbol = getIntent().getStringExtra(SYMBOL_KEY);
+        mLineChartView = (LineChartView) findViewById(R.id.linechart);
         stockHistoryChart = new StockHistoryChart(mLineChartView, getBaseContext());
 
         Cursor cursor = drawChart();
@@ -62,6 +59,38 @@ public class LineGraphActivity extends Activity {
             String formattedStartDate = simpleDateFormat.format(cal.getTime());
             new StockHistoryService(this).execute(stockSymbol, formattedStartDate, formattedEndDate);
         }
+    }
+
+    public void restoreActionBar() {
+        ActionBar actionBar = getSupportActionBar();
+        actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_STANDARD);
+        actionBar.setDisplayOptions(ActionBar.DISPLAY_HOME_AS_UP);
+        actionBar.setDisplayShowTitleEnabled(true);
+        actionBar.setDisplayHomeAsUpEnabled(true);
+        actionBar.setTitle(stockSymbol);
+    }
+
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+        this.finish();
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case android.R.id.home:
+                onBackPressed();
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        restoreActionBar();
+        return true;
     }
 
     String[] labels;
@@ -108,12 +137,11 @@ public class LineGraphActivity extends Activity {
 
         stockHistoryChart.setData(labels, values, min, max);
 
-        if(!stockHistoryChart.isShown()) {
+        if (!stockHistoryChart.isShown()) {
             stockHistoryChart.show();
         } else {
             stockHistoryChart.update();
         }
-
 
 
         return c;
