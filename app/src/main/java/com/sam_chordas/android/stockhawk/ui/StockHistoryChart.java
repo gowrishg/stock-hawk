@@ -6,36 +6,33 @@ package com.sam_chordas.android.stockhawk.ui;
 
 import android.animation.PropertyValuesHolder;
 import android.content.Context;
-import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.graphics.Rect;
-import android.graphics.Typeface;
 import android.os.Build;
+import android.util.Log;
 import android.view.View;
-import android.widget.EditText;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.db.chart.Tools;
 import com.db.chart.listener.OnEntryClickListener;
 import com.db.chart.model.ChartEntry;
-import com.db.chart.model.ChartSet;
 import com.db.chart.model.LineSet;
 import com.db.chart.model.Point;
 import com.db.chart.view.AxisController;
 import com.db.chart.view.LineChartView;
 import com.db.chart.view.Tooltip;
+import com.db.chart.view.animation.Animation;
+import com.db.chart.view.animation.easing.BounceEase;
 import com.sam_chordas.android.stockhawk.R;
 
-import java.text.DecimalFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Date;
 
 
 public class StockHistoryChart {
 
 
+    private static final String TAG = StockHistoryChart.class.getSimpleName();
     private final LineChartView mChart;
 
     SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd");
@@ -49,6 +46,7 @@ public class StockHistoryChart {
     LineSet mDataSet;
 
     private Tooltip mTip;
+    private LineGraphActivity onClickListener;
 
     public StockHistoryChart(LineChartView lineChartView, Context context) {
         mContext = context;
@@ -109,41 +107,85 @@ public class StockHistoryChart {
         mChart.setOnEntryClickListener(new OnEntryClickListener() {
             @Override
             public void onClick(int setIndex, int entryIndex, Rect rect) {
-                mDataSet.setColor(Color.parseColor("#b3b5bb"))
-                        .setFill(Color.parseColor("#2d374c"))
-                        .setDotsColor(Color.parseColor("#ffc755"))
-                        .setDotsStrokeColor(Color.parseColor("#ffc755"))
-                        .setDotsRadius(Tools.fromDpToPx(2))
-                        .setThickness(4);
-
-                ChartEntry chartEntry = mDataSet.getEntry(entryIndex);
-                String selectedLabel = chartEntry.getLabel();
-                try {
-                    selectedLabel = tooltipDateFormat.format(simpleDateFormat.parse(selectedLabel));
-                } catch (ParseException e) {
-                    e.printStackTrace();
-                }
-                ((TextView) mTip.findViewById(R.id.label)).setText(selectedLabel);
-                Point point = (Point) chartEntry;
-                point.setColor(Color.parseColor("#ffffff"));
-                point.setStrokeColor(Color.parseColor("#0290c3"));
-                point.setRadius(Tools.fromDpToPx(4));
-                update();
+                showPopup(entryIndex);
+                mChart.dismissAllTooltips();
+                mChart.notifyDataUpdate();
             }
         });
         mChart.show();
 
-        mIsShown = true;
+        //selectItem(mSelectedItem);
     }
 
-    private boolean mIsShown;
 
     public boolean isShown() {
-        return mIsShown;
+        return mChart.isShown();
+    }
+
+    int mSelectedItem = -1;
+
+    public void selectItem(final int selectedItem) {
+        mSelectedItem = selectedItem;
+
+        if (selectedItem == -1) {
+            return;
+        }
+
+        if (selectedItem < mLabels.length) {
+            Log.d(TAG, "" + mChart.isShown());
+
+            Runnable chartAction = new Runnable() {
+                @Override
+                public void run() {
+                    mTip.prepare(mChart.getEntriesArea(0).get(selectedItem), mValues[selectedItem]);
+                    showPopup(selectedItem);
+                    mChart.dismissAllTooltips();
+                    mChart.showTooltip(mTip, true);
+                    Animation a = mChart.getChartAnimation();
+                    a.setEndAction(null);
+
+                }
+            };
+
+            Animation anim = new Animation()
+                    .setEndAction(chartAction);
+
+            mChart.show(anim);
+            Log.d(TAG, "" + mChart.isShown());
+        }
+    }
+
+    private void showPopup(final int selectedItem) {
+        mDataSet.setColor(Color.parseColor("#b3b5bb"))
+                .setFill(Color.parseColor("#2d374c"))
+                .setDotsColor(Color.parseColor("#ffc755"))
+                .setDotsStrokeColor(Color.parseColor("#ffc755"))
+                .setDotsRadius(Tools.fromDpToPx(2))
+                .setThickness(4);
+
+
+        ChartEntry chartEntry = mDataSet.getEntry(selectedItem);
+        String selectedLabel = chartEntry.getLabel();
+        try {
+            selectedLabel = tooltipDateFormat.format(simpleDateFormat.parse(selectedLabel));
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        ((TextView) mTip.findViewById(R.id.label)).setText(selectedLabel);
+        Point point = (Point) chartEntry;
+        point.setColor(Color.parseColor("#ffffff"));
+        point.setStrokeColor(Color.parseColor("#0290c3"));
+        point.setRadius(Tools.fromDpToPx(4));
+        if (onClickListener != null) {
+            onClickListener.setSelectedItem(selectedItem);
+        }
+    }
+
+    public void setOnClickListener(LineGraphActivity onClickListener) {
+        this.onClickListener = onClickListener;
     }
 
     public void update() {
-        mChart.dismissAllTooltips();
         mChart.notifyDataUpdate();
     }
 }

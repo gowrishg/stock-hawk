@@ -35,6 +35,7 @@ public class LineGraphActivity extends AppCompatActivity {
     String stockSymbol;
     public static final String SYMBOL_KEY = "symbol";
     StockHistoryChart stockHistoryChart;
+    int mSelectedItem = -1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,6 +44,7 @@ public class LineGraphActivity extends AppCompatActivity {
         stockSymbol = getIntent().getStringExtra(SYMBOL_KEY);
         mLineChartView = (LineChartView) findViewById(R.id.linechart);
         stockHistoryChart = new StockHistoryChart(mLineChartView, getBaseContext());
+        stockHistoryChart.setOnClickListener(this);
 
         Cursor cursor = drawChart();
         //format the date to the following yyyy-MM-dd
@@ -132,7 +134,7 @@ public class LineGraphActivity extends AppCompatActivity {
             values[i++] = c.getFloat(c.getColumnIndex(QuoteData.OPEN));
             min = min < values[i - 1] ? min : values[i - 1];
             max = max > values[i - 1] ? max : values[i - 1];
-            Log.d(TAG, labels[i - 1] + ":" + values[i - 1]);
+            //Log.d(TAG, labels[i - 1] + ":" + values[i - 1]);
         }
 
         stockHistoryChart.setData(labels, values, min, max);
@@ -207,7 +209,7 @@ public class LineGraphActivity extends AppCompatActivity {
             while (cursor.moveToNext()) {
                 int column = cursor.getColumnCount();
                 for (int i = 0; i < column; i++) {
-                    Log.d(TAG, "Column-" + i + ": " + cursor.getColumnName(i));
+                    //Log.d(TAG, "Column-" + i + ": " + cursor.getColumnName(i));
                 }
             }
 
@@ -239,5 +241,26 @@ public class LineGraphActivity extends AppCompatActivity {
             super.onPostExecute(aVoid);
             drawChart();
         }
+    }
+
+    @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+        mSelectedItem = savedInstanceState.getInt("SELECTED_INDEX", -1);
+        if(mSelectedItem > -1) {
+            stockHistoryChart.selectItem(mSelectedItem);
+        }
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        if(mSelectedItem > -1) {
+            outState.putInt("SELECTED_INDEX", mSelectedItem);
+        }
+    }
+
+    public void setSelectedItem(int selectedItem) {
+        mSelectedItem = selectedItem;
     }
 }
