@@ -15,19 +15,16 @@ import android.support.annotation.Nullable;
 import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.support.v4.widget.ContentLoadingProgressBar;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.helper.ItemTouchHelper;
 import android.text.InputType;
-import android.text.TextUtils;
-import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.inputmethod.InputMethodManager;
-import android.widget.Toast;
 
 import com.afollestad.materialdialogs.MaterialDialog;
 import com.google.android.gms.gcm.GcmNetworkManager;
@@ -70,6 +67,7 @@ MyStocksActivity extends AppCompatActivity implements LoaderManager.LoaderCallba
     private RecyclerView mRecyclerView;
     private FloatingActionButton mFab;
     private CoordinatorLayout coordinatorlayout;
+    private ContentLoadingProgressBar mContentLoadingProgressBar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -81,6 +79,7 @@ MyStocksActivity extends AppCompatActivity implements LoaderManager.LoaderCallba
         mRecyclerView = (RecyclerView) findViewById(R.id.recycler_view);
         mFab = (FloatingActionButton) findViewById(R.id.fab);
         coordinatorlayout = (CoordinatorLayout) findViewById(R.id.coordinatorlayout);
+        mContentLoadingProgressBar = (ContentLoadingProgressBar) findViewById(R.id.loader);
         checkForUpdates();
 
         mRecyclerView.setLayoutManager(new LinearLayoutManager(this));
@@ -224,6 +223,7 @@ MyStocksActivity extends AppCompatActivity implements LoaderManager.LoaderCallba
         mServiceIntent.putExtra("tag", "init");
         boolean isConnected = isInternetConnected();
         if (isConnected) {
+            mContentLoadingProgressBar.show();
             startService(mServiceIntent);
         }
 
@@ -322,11 +322,13 @@ MyStocksActivity extends AppCompatActivity implements LoaderManager.LoaderCallba
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
         mCursorAdapter.swapCursor(data);
         mCursor = data;
+        mContentLoadingProgressBar.hide();
     }
 
     @Override
     public void onLoaderReset(Loader<Cursor> loader) {
         mCursorAdapter.swapCursor(null);
+        mContentLoadingProgressBar.hide();
     }
 
     class AddStockBroadcastReceiver extends BroadcastReceiver {

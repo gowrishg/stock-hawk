@@ -20,8 +20,18 @@
             android:layout_gravity="end|bottom|right"
             android:layout_margin="16dp"
             android:contentDescription="@string/content_description_add_stock"
+            android:foregroundTint="@color/material_blue_500"
             android:src="@drawable/ic_add_white_24dp" />
 
     </android.support.design.widget.CoordinatorLayout>
+
+    <android.support.v4.widget.ContentLoadingProgressBar
+        android:id="@+id/loader"
+        style="?android:attr/progressBarStyleLarge"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_centerVertical="true"
+        android:layout_centerHorizontal="true"/>
 
 </RelativeLayout>
