@@ -34,7 +34,7 @@
                     android:layout_height="wrap_content"
                     android:layout_alignParentBottom="true"
                     android:layout_margin="4dp"
-                    android:gravity="right"
+                    android:gravity="end|right"
                     android:text="@string/description_chart"
                     android:textSize="10sp" />
             </RelativeLayout>
