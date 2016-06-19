@@ -13,6 +13,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.TextView;
 
 import com.db.chart.model.LineSet;
 import com.db.chart.view.LineChartView;
@@ -36,6 +37,7 @@ public class LineGraphActivity extends AppCompatActivity {
     public static final String SYMBOL_KEY = "symbol";
     StockHistoryChart stockHistoryChart;
     int mSelectedItem = -1;
+    TextView mOpenTextView, mCloseTextView, mVolumeTextView, mHighTextView, mLowTextView, mAdjCloseTextView, mDateTextView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,6 +47,13 @@ public class LineGraphActivity extends AppCompatActivity {
         mLineChartView = (LineChartView) findViewById(R.id.linechart);
         stockHistoryChart = new StockHistoryChart(mLineChartView, getBaseContext());
         stockHistoryChart.setOnClickListener(this);
+        mDateTextView = (TextView) findViewById(R.id.date_textview);
+        mHighTextView = (TextView) findViewById(R.id.high_textview);
+        mOpenTextView = (TextView) findViewById(R.id.open_textview);
+        mCloseTextView = (TextView) findViewById(R.id.close_textview);
+        mLowTextView = (TextView) findViewById(R.id.low_textview);
+        mVolumeTextView = (TextView) findViewById(R.id.volume_textview);
+        mAdjCloseTextView = (TextView) findViewById(R.id.adjclose_textview);
 
         Cursor cursor = drawChart();
         //format the date to the following yyyy-MM-dd
@@ -69,7 +78,7 @@ public class LineGraphActivity extends AppCompatActivity {
         actionBar.setDisplayOptions(ActionBar.DISPLAY_HOME_AS_UP);
         actionBar.setDisplayShowTitleEnabled(true);
         actionBar.setDisplayHomeAsUpEnabled(true);
-        actionBar.setTitle(stockSymbol);
+        actionBar.setTitle(stockSymbol.toUpperCase());
     }
 
     @Override
@@ -104,7 +113,7 @@ public class LineGraphActivity extends AppCompatActivity {
      * @return
      */
     private Cursor drawChart() {
-
+        Log.d(TAG, "drawChart()");
         //format the date to the following yyyy-MM-dd
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd");
         Calendar cal = Calendar.getInstance();
@@ -247,7 +256,7 @@ public class LineGraphActivity extends AppCompatActivity {
     protected void onRestoreInstanceState(Bundle savedInstanceState) {
         super.onRestoreInstanceState(savedInstanceState);
         mSelectedItem = savedInstanceState.getInt("SELECTED_INDEX", -1);
-        if(mSelectedItem > -1) {
+        if (mSelectedItem > -1) {
             stockHistoryChart.selectItem(mSelectedItem);
         }
     }
@@ -255,12 +264,33 @@ public class LineGraphActivity extends AppCompatActivity {
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-        if(mSelectedItem > -1) {
+        if (mSelectedItem > -1) {
             outState.putInt("SELECTED_INDEX", mSelectedItem);
         }
     }
 
     public void setSelectedItem(int selectedItem) {
         mSelectedItem = selectedItem;
+        updateUi(selectedItem);
+    }
+
+    private void updateUi(int selectedItem) {
+        Cursor c = getContentResolver().query(QuoteProvider.QuotesHistory.withSymbol(stockSymbol),
+                new String[]{QuoteData.SYMBOL, QuoteData.OPEN, QuoteData.CLOSE, QuoteData.HIGH, QuoteData.LOW, QuoteData.VOLUME, QuoteData.ADJ_CLOSE, QuoteData.DATE},
+                QuoteData.DATE + " = ?",
+                new String[]{labels[selectedItem]},
+                null);
+        int size = c.getCount();
+        if (size == 0) return;
+
+        while (c.moveToNext()) {
+            mDateTextView.setText(labels[selectedItem]);
+            mOpenTextView.setText("" + c.getDouble(c.getColumnIndex(QuoteData.OPEN)));
+            mCloseTextView.setText("" + c.getDouble(c.getColumnIndex(QuoteData.CLOSE)));
+            mAdjCloseTextView.setText("" + c.getDouble(c.getColumnIndex(QuoteData.ADJ_CLOSE)));
+            mLowTextView.setText("" + c.getDouble(c.getColumnIndex(QuoteData.LOW)));
+            mHighTextView.setText("" + c.getDouble(c.getColumnIndex(QuoteData.HIGH)));
+            mVolumeTextView.setText("" + c.getInt(c.getColumnIndex(QuoteData.VOLUME)));
+        }
     }
 }
