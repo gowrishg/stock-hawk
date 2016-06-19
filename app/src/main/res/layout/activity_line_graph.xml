@@ -65,10 +65,9 @@
                     android:id="@+id/date_textview"
                     android:layout_width="match_parent"
                     android:background="#ca9e42"
+                    android:gravity="center"
                     android:textColor="#ffffff"
                     android:textSize="18dp"
-                    android:gravity="center"
-                    android:textStyle="bold"
                     app:layout_columnSpan="2"
                     app:layout_gravity="center" />
 

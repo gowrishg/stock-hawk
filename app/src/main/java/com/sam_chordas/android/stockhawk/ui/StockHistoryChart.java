@@ -64,9 +64,9 @@ public class StockHistoryChart {
 
         // Tooltip
         mTip = new Tooltip(mContext, R.layout.linechart_three_tooltip, R.id.value);
-        mTip.setVerticalAlignment(Tooltip.Alignment.CENTER);
+        mTip.setVerticalAlignment(Tooltip.Alignment.BOTTOM_TOP);
         mTip.setHorizontalAlignment(Tooltip.Alignment.CENTER);
-        mTip.setDimensions((int) Tools.fromDpToPx(65), (int) Tools.fromDpToPx(25 * 2));
+        mTip.setDimensions((int) Tools.fromDpToPx(65), (int) Tools.fromDpToPx(25));
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
 
@@ -79,7 +79,7 @@ public class StockHistoryChart {
                     PropertyValuesHolder.ofFloat(View.SCALE_X, 0f)).setDuration(200);
 
             mTip.setPivotX(Tools.fromDpToPx(65) / 2);
-            mTip.setPivotY(Tools.fromDpToPx(25 * 2));
+            mTip.setPivotY(Tools.fromDpToPx(25));
         }
 
         mChart.setTooltips(mTip);
@@ -99,7 +99,7 @@ public class StockHistoryChart {
                 .setLabelsColor(Color.parseColor("#6a84c3"))
                 .setYLabels(AxisController.LabelPosition.NONE)
                 .setXLabels(AxisController.LabelPosition.NONE)
-                .setAxisBorderValues( (int) Math.floor(mMin * 0.98f), (int) Math.ceil(mMax * 1.02f + 0.5f))
+                .setAxisBorderValues( (int) Math.floor(mMin * 0.98f), (int) Math.ceil(mMax * 1.02f))
                 .setXAxis(false)
                 .setYAxis(false);
 
