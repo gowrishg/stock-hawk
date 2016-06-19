@@ -148,7 +148,7 @@ public class LineGraphActivity extends AppCompatActivity {
 
         stockHistoryChart.setData(labels, values, min, max);
 
-        if (!stockHistoryChart.isShown()) {
+        if (!stockHistoryChart.isIsShown()) {
             stockHistoryChart.show();
         } else {
             stockHistoryChart.update();
@@ -157,34 +157,6 @@ public class LineGraphActivity extends AppCompatActivity {
 
         return c;
 
-        /*
-        LineSet dataset = new LineSet(labels, values);
-
-
-        dataset.setColor(Color.parseColor("#758cbb"))
-                .setFill(Color.parseColor("#2d374c"))
-                .setDotsColor(Color.parseColor("#758cbb"))
-                .setThickness(4)
-        ;
-
-        mLineChartView.getData().clear();
-        mLineChartView.setYLabels(AxisController.LabelPosition.NONE)
-                .setXLabels(AxisController.LabelPosition.NONE)
-                .setAxisBorderValues((int) min - 1, (int) max + 1)
-                .setXAxis(false)
-                .setYAxis(false)
-                .setOnEntryClickListener(new OnEntryClickListener() {
-                    @Override
-                    public void onClick(int setIndex, int entryIndex, Rect rect) {
-                        Log.d(TAG, setIndex + ", " + entryIndex);
-                        Snackbar.make(mLineChartView, labels[entryIndex] + ":" + values[entryIndex], Snackbar.LENGTH_LONG).show();
-                    }
-                });
-        mLineChartView.addData(dataset);
-        mLineChartView.show();
-
-        return c;
-        */
     }
 
     /**

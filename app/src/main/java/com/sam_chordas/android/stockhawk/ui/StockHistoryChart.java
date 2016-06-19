@@ -22,7 +22,6 @@ import com.db.chart.view.AxisController;
 import com.db.chart.view.LineChartView;
 import com.db.chart.view.Tooltip;
 import com.db.chart.view.animation.Animation;
-import com.db.chart.view.animation.easing.BounceEase;
 import com.sam_chordas.android.stockhawk.R;
 
 import java.text.ParseException;
@@ -40,10 +39,10 @@ public class StockHistoryChart {
 
     private final Context mContext;
 
-    private String[] mLabels;
-    private float[] mValues;
+    private String[] mLabels = new String[0];
+    private float[] mValues = new float[0];
     float mMin, mMax;
-    LineSet mDataSet;
+    boolean mIsShown = false;
 
     private Tooltip mTip;
     private LineGraphActivity onClickListener;
@@ -86,7 +85,7 @@ public class StockHistoryChart {
         mChart.setTooltips(mTip);
 
         // Data
-        mDataSet = new LineSet(mLabels, mValues);
+        LineSet mDataSet = new LineSet(mLabels, mValues);
         mDataSet.setColor(Color.parseColor("#b3b5bb"))
                 .setFill(Color.parseColor("#2d374c"))
                 .setDotsColor(Color.parseColor("#ffc755"))
@@ -96,11 +95,11 @@ public class StockHistoryChart {
         mChart.addData(mDataSet);
 
         // Chart
-        mChart.setBorderSpacing(Tools.fromDpToPx(15))
+        mChart
                 .setLabelsColor(Color.parseColor("#6a84c3"))
                 .setYLabels(AxisController.LabelPosition.NONE)
                 .setXLabels(AxisController.LabelPosition.NONE)
-                .setAxisBorderValues((int) mMin - 1, (int) mMax + 1)
+                .setAxisBorderValues( (int) Math.floor(mMin * 0.98f), (int) Math.ceil(mMax * 1.02f + 0.5f))
                 .setXAxis(false)
                 .setYAxis(false);
 
@@ -114,12 +113,19 @@ public class StockHistoryChart {
         });
         mChart.show();
 
-        //selectItem(mSelectedItem);
+        mSelectedItem = mLabels.length - 1;
+        selectItem(mSelectedItem);
+        mIsShown = true;
+    }
+
+    public void dismiss() {
+        mChart.dismissAllTooltips();
+        mChart.dismiss();
     }
 
 
-    public boolean isShown() {
-        return mChart.isShown();
+    public boolean isIsShown() {
+        return mIsShown;
     }
 
     int mSelectedItem = -1;
@@ -156,6 +162,7 @@ public class StockHistoryChart {
     }
 
     private void showPopup(final int selectedItem) {
+        LineSet mDataSet = (LineSet) mChart.getData().get(0);
         mDataSet.setColor(Color.parseColor("#b3b5bb"))
                 .setFill(Color.parseColor("#2d374c"))
                 .setDotsColor(Color.parseColor("#ffc755"))
