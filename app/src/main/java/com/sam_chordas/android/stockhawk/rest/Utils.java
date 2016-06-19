@@ -12,7 +12,6 @@ import com.sam_chordas.android.stockhawk.data.QuoteProvider;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.w3c.dom.Text;
 
 import java.util.ArrayList;
 
@@ -24,7 +23,7 @@ public class Utils {
     public static boolean showPercent = true;
     private static String LOG_TAG = Utils.class.getSimpleName();
 
-    public static ArrayList quoteJsonToContentVals(String JSON) {
+    public static ArrayList quoteJsonToContentVals(String JSON, boolean isUpdate) {
         ArrayList<ContentProviderOperation> batchOperations = new ArrayList<>();
         JSONObject jsonObject = null;
         JSONArray resultsArray = null;
@@ -36,7 +35,7 @@ public class Utils {
                 if (count == 1) {
                     jsonObject = jsonObject.getJSONObject("results")
                             .getJSONObject("quote");
-                    ContentProviderOperation contentProviderOperation = buildBatchOperation(jsonObject);
+                    ContentProviderOperation contentProviderOperation = buildBatchOperation(jsonObject, isUpdate);
                     if(contentProviderOperation == null) { return batchOperations; }
                     batchOperations.add(contentProviderOperation);
                 } else {
@@ -45,7 +44,7 @@ public class Utils {
                     if (resultsArray != null && resultsArray.length() != 0) {
                         for (int i = 0; i < resultsArray.length(); i++) {
                             jsonObject = resultsArray.getJSONObject(i);
-                            batchOperations.add(buildBatchOperation(jsonObject));
+                            batchOperations.add(buildBatchOperation(jsonObject, isUpdate));
                         }
                     }
                 }
@@ -57,12 +56,20 @@ public class Utils {
     }
 
     public static String truncateBidPrice(String bidPrice) {
-        bidPrice = String.format("%.2f", Float.parseFloat(bidPrice));
+        try {
+            bidPrice = String.format("%.2f", Float.parseFloat(bidPrice));
+        } catch (NumberFormatException ex) {
+            bidPrice = "0.0";
+        }
         return bidPrice;
     }
 
     public static String truncatePrice(String bidPrice) {
-        bidPrice = String.format("%.6f", Float.parseFloat(bidPrice));
+        try {
+            bidPrice = String.format("%.6f", Float.parseFloat(bidPrice));
+        } catch (NumberFormatException ex) {
+            bidPrice = "0.0";
+        }
         return bidPrice;
     }
 
@@ -86,11 +93,27 @@ public class Utils {
     /**
      * Check if a valid entry exists or not
      * @param jsonObject
+     * @param isUpdate
      * @return Null if entry doesn't exists
      */
-    public static @Nullable ContentProviderOperation buildBatchOperation(JSONObject jsonObject) {
-        ContentProviderOperation.Builder builder = ContentProviderOperation.newInsert(
-                QuoteProvider.Quotes.CONTENT_URI);
+    public static @Nullable ContentProviderOperation buildBatchOperation(JSONObject jsonObject, boolean isUpdate) {
+        ContentProviderOperation.Builder builder = null;
+        String symbol = null;
+
+        try {
+            symbol = jsonObject.getString("symbol");
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        if(isUpdate) {
+            builder = ContentProviderOperation.newUpdate(
+                    QuoteProvider.Quotes.withSymbol(symbol));
+        } else {
+            builder = ContentProviderOperation.newInsert(
+                    QuoteProvider.Quotes.CONTENT_URI);
+        }
+
         try {
             String change = jsonObject.getString("Change");
             if(TextUtils.isEmpty(change) || change.equalsIgnoreCase("null")) return null;

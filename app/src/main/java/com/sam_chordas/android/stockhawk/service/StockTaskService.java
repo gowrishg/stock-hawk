@@ -128,14 +128,13 @@ public class StockTaskService extends GcmTaskService{
             mContext.getContentResolver().update(QuoteProvider.Quotes.CONTENT_URI, contentValues,
                 null, null);
           }
-          ArrayList batchContentValues = Utils.quoteJsonToContentVals(getResponse);
+          ArrayList batchContentValues = Utils.quoteJsonToContentVals(getResponse, isUpdate);
           if(!isUpdate) {
             Intent intent = new Intent();
             intent.setAction("stock_add_status");
             if(batchContentValues.isEmpty()) {
               intent.putExtra("status", "symbol_doesnt_exist");
               intent.putExtra("symbol", mStoredSymbols.toString());
-              mContext.sendBroadcast(intent);
             } else {
               intent.putExtra("status", "symbol_added");
               intent.putExtra("symbol", mStoredSymbols.toString());
