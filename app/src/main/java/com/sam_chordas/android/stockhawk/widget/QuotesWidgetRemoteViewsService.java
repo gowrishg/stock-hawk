@@ -6,6 +6,8 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.database.DataSetObserver;
 import android.os.Binder;
+import android.os.Bundle;
+import android.view.View;
 import android.widget.RemoteViews;
 import android.widget.RemoteViewsService;
 
@@ -82,9 +84,11 @@ public class QuotesWidgetRemoteViewsService extends RemoteViewsService {
             remoteViews.setTextViewText(R.id.bid_price, cursor.getString(cursor.getColumnIndex(QuoteColumns.BIDPRICE)));
             remoteViews.setTextViewText(R.id.change, cursor.getString(cursor.getColumnIndex(QuoteColumns.CHANGE)));
 
-            Intent chartIntent = new Intent(context, LineGraphActivity.class);
+            // Next, we set a fill-intent which will be used to fill-in the pending intent template
+            // which is set on the collection view in StackWidgetProvider.
+            Intent chartIntent = new Intent();
             chartIntent.putExtra(LineGraphActivity.SYMBOL_KEY, stock);
-            remoteViews.setOnClickFillInIntent(R.id.bid_price, chartIntent);
+            remoteViews.setOnClickFillInIntent(R.id.quote_list_item, chartIntent);
 
             return remoteViews;
         }

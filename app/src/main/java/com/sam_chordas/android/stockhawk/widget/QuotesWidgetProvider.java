@@ -5,17 +5,10 @@ import android.appwidget.AppWidgetManager;
 import android.appwidget.AppWidgetProvider;
 import android.content.Context;
 import android.content.Intent;
-import android.database.Cursor;
-import android.os.Binder;
 import android.widget.RemoteViews;
-import android.widget.RemoteViewsService;
-import android.widget.RemoteViewsService.RemoteViewsFactory;
 
 import com.sam_chordas.android.stockhawk.R;
-import com.sam_chordas.android.stockhawk.data.QuoteColumns;
-import com.sam_chordas.android.stockhawk.data.QuoteProvider;
 import com.sam_chordas.android.stockhawk.ui.LineGraphActivity;
-import com.sam_chordas.android.stockhawk.ui.StockHistoryChart;
 
 /**
  * Created by gowrishg on 20/6/16.
@@ -28,8 +21,16 @@ public class QuotesWidgetProvider extends AppWidgetProvider {
             Intent intent = new Intent(context, QuotesWidgetRemoteViewsService.class);
             intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId);
             remoteViews.setRemoteAdapter(R.id.widget_listview, intent);
+
+            // Create a Pending Intent Template to handle the onclick events to launch Graph
+            Intent mainActivityIntent = new Intent(context, LineGraphActivity.class);
+            PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, mainActivityIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+            remoteViews.setPendingIntentTemplate(R.id.widget_listview, pendingIntent);
+
             appWidgetManager.updateAppWidget(appWidgetId, remoteViews);
         }
         super.onUpdate(context, appWidgetManager, appWidgetIds);
     }
+
+    public static final String EXTRA_ITEM = "extra_item";
 }

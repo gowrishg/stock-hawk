@@ -10,7 +10,6 @@
         android:id="@+id/widget_listview"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:clickable="true"
         android:divider="@null"
         android:dividerHeight="0dp"
         tools:listitem="@layout/list_item_quote" />
