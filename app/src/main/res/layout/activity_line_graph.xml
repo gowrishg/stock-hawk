@@ -63,8 +63,11 @@
 
                 <TextView
                     android:id="@+id/date_textview"
-                    android:background="@color/md_material_blue_800"
-                    android:textSize="14dp"
+                    android:layout_width="match_parent"
+                    android:background="#ca9e42"
+                    android:textColor="#ffffff"
+                    android:textSize="18dp"
+                    android:gravity="center"
                     android:textStyle="bold"
                     app:layout_columnSpan="2"
                     app:layout_gravity="center" />

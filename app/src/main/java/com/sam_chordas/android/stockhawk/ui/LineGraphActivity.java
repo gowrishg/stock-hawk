@@ -26,6 +26,7 @@ import com.squareup.okhttp.Request;
 import com.squareup.okhttp.Response;
 
 import java.io.IOException;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 
@@ -38,6 +39,8 @@ public class LineGraphActivity extends AppCompatActivity {
     StockHistoryChart stockHistoryChart;
     int mSelectedItem = -1;
     TextView mOpenTextView, mCloseTextView, mVolumeTextView, mHighTextView, mLowTextView, mAdjCloseTextView, mDateTextView;
+    SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd");
+    SimpleDateFormat tooltipDateFormat = new SimpleDateFormat("dd MMM");
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -256,7 +259,14 @@ public class LineGraphActivity extends AppCompatActivity {
         if (size == 0) return;
 
         while (c.moveToNext()) {
-            mDateTextView.setText(labels[selectedItem]);
+            String selectedLabel = null;
+            try {
+                selectedLabel = tooltipDateFormat.format(simpleDateFormat.parse( labels[selectedItem] ));
+                mDateTextView.setText(selectedLabel);
+            } catch (ParseException e) {
+                e.printStackTrace();
+            }
+
             mOpenTextView.setText("" + c.getDouble(c.getColumnIndex(QuoteData.OPEN)));
             mCloseTextView.setText("" + c.getDouble(c.getColumnIndex(QuoteData.CLOSE)));
             mAdjCloseTextView.setText("" + c.getDouble(c.getColumnIndex(QuoteData.ADJ_CLOSE)));
