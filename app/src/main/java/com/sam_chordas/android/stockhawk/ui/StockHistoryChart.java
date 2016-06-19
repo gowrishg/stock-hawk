@@ -118,12 +118,6 @@ public class StockHistoryChart {
         mIsShown = true;
     }
 
-    public void dismiss() {
-        mChart.dismissAllTooltips();
-        mChart.dismiss();
-    }
-
-
     public boolean isIsShown() {
         return mIsShown;
     }
