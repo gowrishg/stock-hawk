@@ -112,6 +112,7 @@ MyStocksActivity extends AppCompatActivity implements LoaderManager.LoaderCallba
                     mFab.show();
                 }
             }
+
             @Override
             public void onScrollStateChanged(RecyclerView recyclerView, int newState) {
                 super.onScrollStateChanged(recyclerView, newState);
@@ -160,6 +161,7 @@ MyStocksActivity extends AppCompatActivity implements LoaderManager.LoaderCallba
     }
 
     MaterialDialog mDialog;
+
     /**
      * Open a dialog to enter a new Symbol
      *
@@ -202,7 +204,7 @@ MyStocksActivity extends AppCompatActivity implements LoaderManager.LoaderCallba
         super.onSaveInstanceState(outState);
         // Put your codes to save the EditText contents and put them
         // to the outState Bundle here.
-        if(mDialog != null && mDialog.isShowing()) {
+        if (mDialog != null && mDialog.isShowing()) {
             outState.putString("DIALOG_WITH_TEXT", mDialog.getInputEditText().getText().toString());
         }
     }
@@ -211,11 +213,10 @@ MyStocksActivity extends AppCompatActivity implements LoaderManager.LoaderCallba
     protected void onRestoreInstanceState(Bundle savedInstanceState) {
         super.onRestoreInstanceState(savedInstanceState);
         String restoreDialogText = savedInstanceState.getString("DIALOG_WITH_TEXT");
-        if(restoreDialogText != null) {
+        if (restoreDialogText != null) {
             addNewSymbol(restoreDialogText);
         }
     }
-
 
 
     private void checkForUpdates() {
@@ -311,10 +312,10 @@ MyStocksActivity extends AppCompatActivity implements LoaderManager.LoaderCallba
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
         // This narrows the return to only the stocks that are most current.
         return new CursorLoader(this, QuoteProvider.Quotes.CONTENT_URI,
-                new String[]{QuoteColumns._ID, QuoteColumns.SYMBOL, QuoteColumns.BIDPRICE,
+                new String[]{QuoteColumns.ISCURRENT, QuoteColumns._ID, QuoteColumns.SYMBOL, QuoteColumns.BIDPRICE,
                         QuoteColumns.PERCENT_CHANGE, QuoteColumns.CHANGE, QuoteColumns.ISUP},
-                QuoteColumns.ISCURRENT + " = ?",
-                new String[]{"1"},
+                null,
+                null,
                 null);
     }
 
@@ -323,6 +324,23 @@ MyStocksActivity extends AppCompatActivity implements LoaderManager.LoaderCallba
         mCursorAdapter.swapCursor(data);
         mCursor = data;
         mContentLoadingProgressBar.hide();
+
+        //! check for any outdated data
+        while (data.moveToNext()) {
+            String isCurrent = data.getString(data.getColumnIndex(QuoteColumns.ISCURRENT));
+            switch (isCurrent) {
+                case "1":
+                    break;
+                case "0":
+                    Snackbar.make(mFab, getString(R.string.outdated), Snackbar.LENGTH_INDEFINITE).setAction(R.string.update, new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            checkForUpdates();
+                        }
+                    }).show();
+                    return;
+            }
+        }
     }
 
     @Override
